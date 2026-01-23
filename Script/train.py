@@ -11,7 +11,7 @@ import joblib
 print("Loading dataset")
 wine_quality = fetch_ucirepo(id=186)
 
-# Features and target (ALL features used)
+# Features and target
 X = wine_quality.data.features
 y = wine_quality.data.targets
 
@@ -19,11 +19,30 @@ print("Dataset variables")
 print(wine_quality.variables)
 
 # -----------------------------
+# Feature Selection using Random Forest Importance
+# -----------------------------
+print("Applying feature selection using feature importance")
+
+temp_model = RandomForestRegressor(random_state=42)
+temp_model.fit(X, y)
+
+importances = temp_model.feature_importances_
+feature_names = X.columns
+
+# Select features with importance above threshold
+threshold = np.mean(importances)
+selected_features = feature_names[importances > threshold]
+
+X_selected = X[selected_features]
+
+print(f"Selected features: {list(selected_features)}")
+
+# -----------------------------
 # Train-test split (80-20)
 # -----------------------------
 print("Splitting train test data")
 X_train, X_test, y_train, y_test = train_test_split(
-    X, y, test_size=0.2, random_state=42
+    X_selected, y, test_size=0.2, random_state=42
 )
 
 # -----------------------------
@@ -31,8 +50,8 @@ X_train, X_test, y_train, y_test = train_test_split(
 # -----------------------------
 print("Training Random Forest Regressor")
 model = RandomForestRegressor(
-    n_estimators=50,
-    max_depth=10,
+    n_estimators=100,
+    max_depth=15,
     random_state=42
 )
 
@@ -41,7 +60,7 @@ model.fit(X_train, y_train)
 # -----------------------------
 # Save model
 # -----------------------------
-model_filename = 'output/model-rf-exp3.pkl'
+model_filename = 'output/model-rf-exp4.pkl'
 os.makedirs(os.path.dirname(model_filename), exist_ok=True)
 joblib.dump(model, model_filename)
 print(f"Model saved to {model_filename}")
@@ -62,11 +81,11 @@ print(f"Mean Squared Error (MSE): {mse_value:.2f}")
 print("Saving metrics as JSON")
 
 data = {
-    "Experiment ID": "Exp-03",
+    "Experiment ID": "Exp-04",
     "Model Type": "Random Forest",
-    "Hyperparameters": "50 trees, depth 10",
+    "Hyperparameters": "100 trees, depth 15",
     "Preprocessing-Steps": "None",
-    "Feature-Selection-Method": "All",
+    "Feature-Selection-Method": "Selected Feature",
     "Train/Test-Split": "80-20",
     "MSE": mse_value,
     "R^2 Score": r2_score_value
