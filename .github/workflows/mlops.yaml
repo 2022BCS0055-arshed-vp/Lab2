@@ -2,7 +2,8 @@ name: MLOps Lab 4 Pipeline
 
 on:
   push:
-    branches: [ "main" ]
+    branches:
+      - "**"     # run workflow on ALL branches
 
 jobs:
   train:
@@ -33,6 +34,7 @@ jobs:
 
   deploy:
     needs: train
+    if: github.ref == 'refs/heads/main'   # deploy ONLY on main
     runs-on: ubuntu-latest
 
     steps:
